@@ -1,0 +1,4 @@
+---
+# defaults file for acr-ansible-scadalts
+scadalts_basepath: /opt/scadalts
+ubuntu2204: false

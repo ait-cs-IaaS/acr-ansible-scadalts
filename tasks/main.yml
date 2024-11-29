@@ -1,0 +1,46 @@
+---
+- name: Install unzip on Debian/Ubuntu
+  apt:
+    name: unzip
+    state: present
+
+- name: Get Scada-LTS Linux-Installer Repository
+  include_role:
+    name: get-git-repo
+  vars:
+    repo_user: root
+    repo_basepath: "{{ scadalts_basepath }}"
+    repo_url: https://github.com/ait-cs-IaaS/scadalts-linux-installer.git
+    repo_branch: main
+
+- name: Create symbolic links to make dependencies runable on Ubuntu 24.04
+  ansible.builtin.file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+  loop:
+    - { src: "/usr/lib/x86_64-linux-gnu/libaio.so.1t64", dest: "/usr/lib/x86_64-linux-gnu/libaio.so.1", condition: "{{ ubuntu2204 == false }}" }
+    - { src: "/usr/lib/x86_64-linux-gnu/libncurses.so.6", dest: "/usr/lib/x86_64-linux-gnu/libncurses.so.5", condition: true }
+    - { src: "/usr/lib/x86_64-linux-gnu/libtinfo.so.6", dest: "/usr/lib/x86_64-linux-gnu/libtinfo.so.5", condition: true }
+  when: item.condition
+
+- name: Start (and configure) SQL-Server
+  ansible.builtin.command: "{{ scadalts_basepath }}/mysql_start.sh"
+  failed_when: false
+
+- name: Start (and configure) Tomcat-Server
+  ansible.builtin.command: "{{ scadalts_basepath }}/tomcat_start.sh"
+  failed_when: false
+
+- name: Add cron jobs to crontab
+  ansible.builtin.cron:
+    name: "Start MySQL on reboot"
+    special_time: reboot
+    job: "/opt/scadalts/mysql_start.sh >> /var/log/mysql_start.log 2>&1"
+
+- name: Add delay and start Tomcat on reboot
+  ansible.builtin.cron:
+    name: "Start Tomcat on reboot"
+    special_time: reboot
+    job: "sleep 30 && /opt/scadalts/tomcat_start.sh >> /var/log/tomcat_start.log 2>&1"
+
