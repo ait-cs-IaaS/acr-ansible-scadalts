@@ -19,7 +19,7 @@
     dest: "{{ item.dest }}"
     state: link
   loop:
-    - { src: "/usr/lib/x86_64-linux-gnu/libaio.so.1t64", dest: "/usr/lib/x86_64-linux-gnu/libaio.so.1", condition: "{{ ubuntu2204 == false }}" }
+    - { src: "/usr/lib/x86_64-linux-gnu/libaio.so.1t64", dest: "/usr/lib/x86_64-linux-gnu/libaio.so.1", condition: "{{ scadalts_ubuntu2204 == false }}" }
     - { src: "/usr/lib/x86_64-linux-gnu/libncurses.so.6", dest: "/usr/lib/x86_64-linux-gnu/libncurses.so.5", condition: true }
     - { src: "/usr/lib/x86_64-linux-gnu/libtinfo.so.6", dest: "/usr/lib/x86_64-linux-gnu/libtinfo.so.5", condition: true }
   when: item.condition
